@@ -1,6 +1,7 @@
 module data_path(
     input wire signed [63 : 0] istream_msg, //input stream message
     input clk,
+    input rst,
     input b_mux_sel,
     input a_mux_sel,
     input r_mux_sel,
