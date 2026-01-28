@@ -2,21 +2,22 @@ module data_path(
     input wire signed [63 : 0] istream_msg, //input stream message
     input clk,
     input rst,
+    input state_done,
     input b_mux_sel,
     input a_mux_sel,
     input r_mux_sel,
     input add_mux_sel,
     input r_en,
     output b_lsb, //lsb : left significant bit
-    output wire signed [32 : 0] ostream_msg
+    output wire signed [31 : 0] ostream_msg
 ); 
 
-    wire signed [32 : 0] b_mux_out, b_rs_out; //rs : right shift
-    wire signed [32 : 0] a_mux_out, a_ls_out; //ls : left shift
-    wire signed [32 : 0] r_mux1_out, r_mux2_out, partial_sum;
-    wire signed [32 : 0] a = istream_msg[63 : 32];
-    wire signed [32 : 0] b = istream_msg[32 : 0];
-    reg  signed [32 : 0] b_reg, a_reg, r_reg;
+    wire signed [31 : 0] b_mux_out, b_rs_out; //rs : right shift
+    wire signed [31 : 0] a_mux_out, a_ls_out; //ls : left shift
+    wire signed [31 : 0] r_mux1_out, r_mux2_out, partial_sum;
+    wire signed [31 : 0] a = istream_msg[63 : 32];
+    wire signed [31 : 0] b = istream_msg[31 : 0];
+    reg  signed [31 : 0] b_reg, a_reg, r_reg;
     
 
     assign b_mux_out  = (b_mux_sel) ? b_rs_out : b;
@@ -32,8 +33,10 @@ module data_path(
         end
     end
 
-    assign b_rs_out = (b_reg >> 1);
-    assign a_ls_out = (a_reg << 1);
+    assign b_rs_out = (!state_done) ? (b_reg >> 1) : b_reg;
+    assign a_ls_out = (!state_done) ? (a_reg << 1) : a_reg;
+
+    assign b_lsb = b_reg[0];
     assign ostream_msg = r_reg;
     assign partial_sum = a_reg + r_reg;
 
