@@ -12,7 +12,9 @@ module main(
 );
 
     wire b_lsb, state_done, r_en;
+    wire [4 : 0] sparse_count;
     wire a_mux_sel, b_mux_sel, r_mux_sel, add_mux_sel;
+    wire signed [31 : 0] b_reg;
     
     reg sign_f;
     always @(posedge clk) begin
@@ -43,7 +45,9 @@ module main(
         .r_mux_sel(r_mux_sel),
         .add_mux_sel(add_mux_sel),
         .r_en(r_en),
-        .state_done(state_done)
+        .state_done(state_done),
+        .sparse_count(sparse_count),
+        .b_reg(b_reg)
     );
 
     data_path data (
@@ -57,7 +61,9 @@ module main(
         .r_mux_sel(r_mux_sel),
         .add_mux_sel(add_mux_sel),
         .r_en(r_en),
-        .b_lsb(b_lsb)
+        .b_lsb(b_lsb),
+        .sparse_count(sparse_count),
+        .b_reg(b_reg)
     );
 
 endmodule

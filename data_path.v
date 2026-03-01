@@ -1,5 +1,6 @@
 module data_path(
     input wire signed [63 : 0] istream_msg, //input stream message
+    input wire [4 : 0] sparse_count,
     input clk,
     input rst,
     input state_done,
@@ -9,7 +10,8 @@ module data_path(
     input add_mux_sel,
     input r_en,
     output b_lsb, //lsb : left significant bit
-    output wire signed [31 : 0] ostream_msg
+    output wire signed [31 : 0] ostream_msg,
+    output reg signed [31 : 0] b_reg
 ); 
 
     wire signed [31 : 0] b_mux_out, b_rs_out; //rs : right shift
@@ -17,7 +19,7 @@ module data_path(
     wire signed [31 : 0] r_mux1_out, r_mux2_out, partial_sum;
     wire signed [31 : 0] a = istream_msg[63 : 32];
     wire signed [31 : 0] b = istream_msg[31 : 0];
-    reg  signed [31 : 0] b_reg, a_reg, r_reg;
+    reg  signed [31 : 0] a_reg, r_reg;
     
 
     assign b_mux_out  = (b_mux_sel) ? b_rs_out : b;
@@ -33,8 +35,8 @@ module data_path(
         end
     end
 
-    assign b_rs_out = (!state_done) ? (b_reg >> 1) : b_reg;
-    assign a_ls_out = (!state_done) ? (a_reg << 1) : a_reg;
+    assign b_rs_out = (!state_done) ? (b_reg >> sparse_count) : b_reg;
+    assign a_ls_out = (!state_done) ? (a_reg << sparse_count) : a_reg;
 
     assign b_lsb = b_reg[0];
     assign ostream_msg = r_reg;

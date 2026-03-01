@@ -4,6 +4,7 @@ module control_unit(
     input b_lsb,
     input istream_val,
     input ostream_rdy,
+    input wire signed [31 : 0] b_reg,
     output reg istream_rdy,
     output reg ostream_val,
     output reg b_mux_sel,
@@ -11,26 +12,36 @@ module control_unit(
     output reg r_mux_sel,
     output reg add_mux_sel,
     output reg r_en,
-    output reg state_done
+    output reg state_done,
+    output wire [4 : 0] sparse_count
 );
 
     //s1,s2,s3 - FSM states
     //s1:idle, s2:calc, s3:done
 
+    sparse_counter sc(
+        .rst(rst),
+        .b_reg(b_reg),
+        .sparse_count(sparse_count)
+    );
+
     parameter s1 = 2'd1, s2 = 2'd2, s3 = 2'd3;
     reg [1 : 0] state;
     reg [1 : 0] next_state;
-    reg [4 : 0] counter;
+    reg [5 : 0] counter;
 
     always @(posedge clk) begin
         if(rst) begin
             state <= s1;
-            counter <= 5'b0;
+            counter <= 6'b0;
         end
 
         else begin
             state <= next_state;
-            if(state == s2) counter <= counter + 1;
+            if(state == s1) counter <= 6'b0;
+            if(state == s2) begin
+                counter <= counter + sparse_count;
+            end
         end
     end
 
@@ -62,7 +73,7 @@ module control_unit(
                 a_mux_sel = 1'b1;
                 r_mux_sel = 1'b1;
 
-                if(counter == 5'd31) begin
+                if(counter >= 6'd31) begin
                     next_state = s3;
                 end
 
