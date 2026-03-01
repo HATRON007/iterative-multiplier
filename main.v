@@ -30,7 +30,7 @@ module main(
     assign ostream_msg = (!sign_f) ? ostream_msg_mod : ((~ostream_msg_mod) + 1);
     
 
-    control_init ctrl (
+    control_unit ctrl (
         .clk(clk),
         .rst(rst),
         .b_lsb(b_lsb),
@@ -46,7 +46,7 @@ module main(
         .state_done(state_done)
     );
 
-    datapath data (
+    data_path data (
         .clk(clk),
         .rst(rst),
         .istream_msg(istream_msg_mod),
