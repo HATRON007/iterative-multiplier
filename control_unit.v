@@ -4,7 +4,7 @@ module control_unit(
     input b_lsb,
     input istream_val,
     input ostream_rdy,
-    input wire signed [31 : 0] b_reg,
+    input wire [31 : 0] b_reg,
     output reg istream_rdy,
     output reg ostream_val,
     output reg b_mux_sel,
@@ -12,6 +12,7 @@ module control_unit(
     output reg r_mux_sel,
     output reg add_mux_sel,
     output reg r_en,
+    output reg load_pulse,
     output reg state_done,
     output wire [4 : 0] sparse_count
 );
@@ -25,7 +26,7 @@ module control_unit(
         .sparse_count(sparse_count)
     );
 
-    parameter s1 = 2'd1, s2 = 2'd2, s3 = 2'd3;
+    parameter s0 = 2'd0, s1 = 2'd1, s2 = 2'd2, s3 = 2'd3;
     reg [1 : 0] state;
     reg [1 : 0] next_state;
     reg [5 : 0] counter;
@@ -38,10 +39,8 @@ module control_unit(
 
         else begin
             state <= next_state;
-            if(state == s1) counter <= 6'b0;
-            if(state == s2) begin
-                counter <= counter + sparse_count;
-            end
+            if(state == s1 || state == s0) counter <= 6'b0;
+            if(state == s2) counter <= counter + sparse_count;
         end
     end
 
@@ -55,17 +54,22 @@ module control_unit(
         r_en = 1'b0;
         istream_rdy = 1'b0;
         ostream_val = 1'b0;
+        load_pulse = 1'b0;
 
         case(state)
+
+        s0: begin
+                b_mux_sel  = 1'b0;
+                a_mux_sel  = 1'b0;
+                r_mux_sel  = 1'b0;
+                r_en       = 1'b1;
+                load_pulse = 1'b1;
+                next_state = s2;
+            end
+
         s1: begin
                 istream_rdy = 1'b1;
-                if(istream_val) begin
-                    b_mux_sel = 1'b0;
-                    a_mux_sel = 1'b0;
-                    r_mux_sel = 1'b0;
-                    r_en = 1'b1;
-                    next_state = s2;
-                end
+                if(istream_val) next_state = s0;
             end
 
         s2: begin
@@ -73,9 +77,7 @@ module control_unit(
                 a_mux_sel = 1'b1;
                 r_mux_sel = 1'b1;
 
-                if(counter >= 6'd31) begin
-                    next_state = s3;
-                end
+                if(counter >= 6'd32) next_state = s3;
 
                 if(b_lsb) begin
                     add_mux_sel = 1'b1;
@@ -85,7 +87,6 @@ module control_unit(
             end
 
         s3: begin
-
                 state_done = 1'b1; 
                 ostream_val = 1'b1;
                 if(ostream_rdy) begin
