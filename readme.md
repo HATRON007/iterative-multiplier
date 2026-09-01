@@ -25,9 +25,15 @@ The design is partitioned into a strict datapath and control unit, wrapped in a 
 *   **`data_path.v`:** Contains the accumulator (`r_reg`), multiplicand register (`a_reg`), and multiplier register (`b_reg`). It applies dynamic shifts (`<< sparse_count` and `>> sparse_count`) and routes the partial sum back to the accumulator.
 *   **`control_unit.v`:** A Mealy Finite State Machine (FSM) that drives multiplexer selects and register enables. It cycles through IDLE (`s1`), LOAD (`s0`), CALC (`s2`), and DONE (`s3`) states based on the `val/rdy` handshake and the execution counter.
 
-![FSM Diagram](docs/FSM_Diagram.png)
+<div align="center">
+  <img src="docs/FSM%20Diagram.png" width="400" alt="FSM Diagram">
+</div>
 
-![Datapath Diagram](docs/Datapath_Diagram.png)
+<br>
+
+<div align="center">
+  <img src="docs/Datapath%20Diagram.png" width="550" alt="Datapath Diagram">
+</div>
 
 ## Simulation & Debugging
 
