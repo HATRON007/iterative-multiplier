@@ -1,23 +1,45 @@
-# Variable-Latency Iterative Multiplier
+# Variable Latency 32-bit Iterative Multiplier
 
-A 32-bit variable-latency iterative integer multiplier written in Verilog, supporting both signed and unsigned two's complement arithmetic.
+This repository contains a 32-bit iterative integer multiplier that handles both signed and unsigned two's complement numbers using a shift-and-add algorithm. The design improves upon standard fixed-latency iterative multipliers by skipping continuous chains of zeros during computation.
 
-## Architecture & Optimizations
+## Interface Protocol (val/rdy)
 
-Instead of a standard fixed-latency multiplier, this design optimizes execution time based on the input operands. 
+The module encapsulates its variable execution time using a latency-insensitive `val/rdy` (valid/ready) stream interface. 
+*   **Encapsulation:** The internal cycle latency is completely hidden from the external system to maintain a clean boundary.
+*   **Handshake:** The multiplier only accepts 64-bit input operands when `istream_rdy` is high and asserts `ostream_val` only when the final 32-bit product is ready.
 
-* **Control/Datapath Split:** The design is cleanly separated into a finite-state machine (`control_unit.v`) and the arithmetic logic (`data_path.v`).
-* **Zero-Skipping (Variable Latency):** It utilizes a custom sparse counter (`sparse_counter.v`) to detect and skip consecutive zeros in the multiplier operand, shifting multiple bits in a single cycle to drastically reduce the overall cycle count.
-* **Top-Level Interface:** Wrapped in `imul_main.v`, utilizing a latency-insensitive `val/rdy` stream interface for seamless integration. 
+![val/rdy Interface](docs/valrdy_Interface.png)
 
-## Technical Specifications
+## The Sparse Counter Optimization
 
-* **Language:** Verilog (RTL)
-* **Operands:** 32-bit Signed & Unsigned (Two's complement)
-* **Input (istream):** 64-bit message (Two 32-bit operands)
-* **Output (ostream):** 32-bit message (Result)
+The baseline architectural reference uses a fixed ~35 cycle execution path. This implementation reduces total clock cycles using a custom Sparse Counter (`sparse_counter.v`).
+*   The counter uses combinational logic to dynamically inspect the multiplier register (`b_reg`) and locate the bit position of the next `1`.
+*   Instead of shifting by a single bit per cycle, the datapath shifts both the multiplicand and multiplier by the calculated `sparse_count` simultaneously.
+*   This allows the execution state to skip long sequences of `0`s in a single clock cycle, dynamically adapting the latency based on the structure of the input operands.
 
-## Toolchain & Verification
+## Microarchitecture Breakdown
 
-* **Simulation & Debugging:** Icarus Verilog (`iverilog`) and GTKWave.
-* **Testbench:** Fully verified using a custom Verilog testbench (`testbench.v`).
+The design is partitioned into a strict datapath and control unit, wrapped in a top-level module.
+
+*   **`imul_main.v` (Top Wrapper):** Manages two's complement signed arithmetic. It records the signs of the 64-bit input stream, converts both operands to positive magnitudes for the core datapath to process, and reapplies the correct sign to the final 32-bit output.
+*   **`data_path.v`:** Contains the accumulator (`r_reg`), multiplicand register (`a_reg`), and multiplier register (`b_reg`). It applies dynamic shifts (`<< sparse_count` and `>> sparse_count`) and routes the partial sum back to the accumulator.
+*   **`control_unit.v`:** A Mealy Finite State Machine (FSM) that drives multiplexer selects and register enables. It cycles through IDLE (`s1`), LOAD (`s0`), CALC (`s2`), and DONE (`s3`) states based on the `val/rdy` handshake and the execution counter.
+
+![FSM Diagram](docs/FSM_Diagram.png)
+
+![Datapath Diagram](docs/Datapath_Diagram.png)
+
+## Simulation & Debugging
+
+The module is simulated using **Icarus Verilog** and debugged with **GTKWave**. 
+
+A self-checking testbench (`testbench.v`) is included to verify the datapath. It covers standard operations, zero multiplication, and signed bounds (e.g., negative by negative), outputting simple PASS/FAIL logs directly to the console.
+
+## Repository Structure
+
+*   **`docs/`**: Architecture reference diagrams and documentation.
+*   **`imul_main.v`**: Top-level wrapper managing signed operations.
+*   **`control_unit.v`**: FSM for datapath routing and handshaking.
+*   **`data_path.v`**: Core shift-and-add datapath logic.
+*   **`sparse_counter.v`**: Combinational zero-skipping logic.
+*   **`testbench.v`**: Self-checking Verilog simulation environment.
