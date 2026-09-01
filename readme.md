@@ -8,7 +8,10 @@ The module encapsulates its variable execution time using a latency-insensitive 
 *   **Encapsulation:** The internal cycle latency is completely hidden from the external system to maintain a clean boundary.
 *   **Handshake:** The multiplier only accepts 64-bit input operands when `istream_rdy` is high and asserts `ostream_val` only when the final 32-bit product is ready.
 
-![val/rdy Interface](docs/valrdy_Interface.png)
+### val/rdy Interface
+<div align="center">
+  <img src="docs/valrdy_Interface.png" alt="val/rdy Interface">
+</div>
 
 ## The Sparse Counter Optimization
 
@@ -25,12 +28,14 @@ The design is partitioned into a strict datapath and control unit, wrapped in a 
 *   **`data_path.v`:** Contains the accumulator (`r_reg`), multiplicand register (`a_reg`), and multiplier register (`b_reg`). It applies dynamic shifts (`<< sparse_count` and `>> sparse_count`) and routes the partial sum back to the accumulator.
 *   **`control_unit.v`:** A Mealy Finite State Machine (FSM) that drives multiplexer selects and register enables. It cycles through IDLE (`s1`), LOAD (`s0`), CALC (`s2`), and DONE (`s3`) states based on the `val/rdy` handshake and the execution counter.
 
+### Control Unit FSM
 <div align="center">
   <img src="./docs/FSM_Diagram.png" width="400" alt="FSM Diagram">
 </div>
 
 <br>
 
+### Datapath Architecture
 <div align="center">
   <img src="./docs/Datapath_Diagram.png" width="550" alt="Datapath Diagram">
 </div>
