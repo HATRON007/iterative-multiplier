@@ -26,13 +26,13 @@ The design is partitioned into a strict datapath and control unit, wrapped in a 
 *   **`control_unit.v`:** A Mealy Finite State Machine (FSM) that drives multiplexer selects and register enables. It cycles through IDLE (`s1`), LOAD (`s0`), CALC (`s2`), and DONE (`s3`) states based on the `val/rdy` handshake and the execution counter.
 
 <div align="center">
-  <img src="docs/FSM%20Diagram.png" width="400" alt="FSM Diagram">
+  <img src="./docs/FSM_Diagram.png" width="400" alt="FSM Diagram">
 </div>
 
 <br>
 
 <div align="center">
-  <img src="docs/Datapath%20Diagram.png" width="550" alt="Datapath Diagram">
+  <img src="./docs/Datapath_Diagram.png" width="550" alt="Datapath Diagram">
 </div>
 
 ## Simulation & Debugging
