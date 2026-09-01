@@ -43,7 +43,7 @@ A self-checking testbench (`testbench.v`) is included to verify the datapath. It
 
 ## Repository Structure
 
-*   **`docs/`**: Architecture reference diagrams and documentation.
+*   **`docs/`**: Architecture reference diagrams and resources.
 *   **`imul_main.v`**: Top-level wrapper managing signed operations.
 *   **`control_unit.v`**: FSM for datapath routing and handshaking.
 *   **`data_path.v`**: Core shift-and-add datapath logic.
